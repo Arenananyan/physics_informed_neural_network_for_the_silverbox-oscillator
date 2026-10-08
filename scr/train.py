@@ -1,12 +1,33 @@
 """Train the acceleration network on randomly selected training windows."""
 
-import argparse
 from pathlib import Path
 import numpy as np
 import torch
 
 from model import AccelerationNetwork
 from integrator import rollout
+
+# Training configuration: edit these values, save the file, then press Run in VS Code.
+# The current 100-step setup is a short repeat experiment, not the final 2000-step Model E.
+model_name = "model_e_repeat_01"  # Experiment label used in the checkpoint filename.
+hidden_size = 128  # Number of neurons in each of the two hidden layers.
+num_steps = 100  # Number of optimizer updates (one random window per update).
+window_size = 128  # Number of samples in each training rollout.
+learning_rate = 0.0005  # Adam optimizer step size.
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def choose_checkpoint_path(checkpoint_dir):
+    """Create a new filename so pressing Run again never replaces saved weights."""
+    stem = f"{model_name}_w{window_size}_s{num_steps}"
+    path = checkpoint_dir / f"{stem}.pt"
+    run_number = 2
+    # Preserve earlier experiments by adding _run02, _run03, etc. when needed.
+    while path.exists():
+        path = checkpoint_dir / f"{stem}_run{run_number:02d}.pt"
+        run_number += 1
+    return path
 
 
 def load_training_data(data_path):
@@ -21,21 +42,9 @@ def load_training_data(data_path):
     return u_train, y_train, 1.0 / fs
 
 
-def main(argv=None):
-    """Train with the selected configuration and save weights plus metadata."""
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--model-name", default="model_e")
-    parser.add_argument("--hidden-size", type=int, default=128)
-    parser.add_argument("--steps", type=int, default=2000)
-    parser.add_argument("--window", type=int, default=128)
-    parser.add_argument("--learning-rate", type=float, default=0.0005)
-    parser.add_argument(
-        "--checkpoint",
-        type=Path,
-        help="Optional new output path; existing checkpoints are protected.",
-    )
-    args = parser.parse_args(argv)
-    root = Path(__file__).resolve().parent.parent
+def main():
+    """Train with the configuration above and save a separate checkpoint per run."""
+    root = PROJECT_ROOT
     data_path = root / "data" / "processed" / "silverbox_excerpt.npz"
 
     u_train, y_train, dt = load_training_data(data_path)
@@ -49,28 +58,13 @@ def main(argv=None):
     print("Initial y:", y0.item())
     print("Initial v:", v0.item())
 
-    # Training configuration
-    model_name = args.model_name
-    hidden_size = args.hidden_size
-    num_steps = args.steps
-    window_size = args.window
-    learning_rate = args.learning_rate
-
+    # Validate the editable settings before starting optimization.
     if hidden_size < 1 or num_steps < 1 or learning_rate <= 0:
-        parser.error("Hidden size, steps and learning rate must be positive.")
+        raise ValueError("Hidden size, steps and learning rate must be positive.")
     if not 2 <= window_size <= len(u_train):
-        parser.error("Window must contain 2 to len(training data) samples.")
-    checkpoint_path = args.checkpoint or (
-        root
-        / "results"
-        / "checkpoints"
-        / f"{model_name}_w{window_size}_s{num_steps}.pt"
-    )
-    if checkpoint_path.exists():
-        raise FileExistsError(
-            f"Preserving existing experiment: {checkpoint_path}. "
-            "Choose a new --checkpoint path."
-        )
+        raise ValueError("Window must contain 2 to len(training data) samples.")
+    checkpoint_path = choose_checkpoint_path(root / "results" / "checkpoints")
+    print("New checkpoint will be saved to:", checkpoint_path)
 
     torch.manual_seed(42)
 

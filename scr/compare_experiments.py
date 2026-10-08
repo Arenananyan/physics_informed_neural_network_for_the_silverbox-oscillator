@@ -1,4 +1,4 @@
-"""Plot train/test RMSE from the primary experiment CSV without rerunning models."""
+"""Plot train/test RMSE from the experiment CSV without rerunning models."""
 
 import argparse
 import csv
@@ -39,7 +39,7 @@ def main(argv=None):
     if not np.allclose(baselines, baselines[0], rtol=0, atol=1e-9):
         raise ValueError("Experiments must share the same test baseline.")
     labels = [
-        f"{row['model'].split('_')[-1].upper()}\nW{row['window_size']} / S{row['training_steps']}"
+        f"{row['model'].removeprefix('model_').upper()}\nW{row['window_size']} / S{row['training_steps']}"
         for row in rows
     ]
     x = np.arange(len(rows))
@@ -53,7 +53,7 @@ def main(argv=None):
         xticks=x,
         xticklabels=labels,
         ylabel="RMSE (V)",
-        title="Silverbox: nine saved experiments (continuous free-run evaluation)",
+        title=f"Silverbox: {len(rows)} saved experiments (continuous free-run evaluation)",
     )
     ax.grid(axis="y", alpha=0.25)
     ax.set_axisbelow(True)

@@ -1,6 +1,5 @@
 """Evaluate saved weights with one continuous free run across the excerpt."""
 
-import argparse
 import csv
 from pathlib import Path
 import numpy as np
@@ -9,6 +8,48 @@ import matplotlib.pyplot as plt
 
 from model import AccelerationNetwork
 from integrator import rollout
+
+# Evaluation configuration: save this file, then press Run in VS Code.
+# None selects the most recently saved checkpoint, including repeat training runs.
+# To evaluate a specific model, replace None with its exact filename, for example:
+# checkpoint_name = "model_e_w128_s2000.pt"
+checkpoint_name = None
+
+# False evaluates the selected model; True evaluates all saved experiments except
+# the earlier extra model_a.pt run and rebuilds the comparison CSV.
+evaluate_all = False
+
+# True opens graphs; False only saves them (useful when no display is available).
+show_plots = True
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def select_checkpoints(checkpoint_dir):
+    """Resolve the editable selection and give a readable error for a missing file."""
+    if evaluate_all:
+        paths = sorted(
+            path for path in checkpoint_dir.glob("*.pt") if path.name != "model_a.pt"
+        )
+    elif checkpoint_name is None:
+        paths = list(checkpoint_dir.glob("*.pt"))
+        # Modification time identifies the latest saved run; no filename guessing.
+        paths = (
+            [max(paths, key=lambda path: (path.stat().st_mtime_ns, path.name))]
+            if paths
+            else []
+        )
+    else:
+        paths = [checkpoint_dir / checkpoint_name]
+    if not paths:
+        raise FileNotFoundError("No saved models found. Run train.py first.")
+    for path in paths:
+        if not path.is_file():
+            available = ", ".join(sorted(p.name for p in checkpoint_dir.glob("*.pt")))
+            raise FileNotFoundError(
+                f"Checkpoint not found: {path.name}. Available: {available}"
+            )
+    return paths
 
 
 def load_evaluation_data(path):
@@ -166,49 +207,26 @@ def evaluate_checkpoint(checkpoint_path, data_path, figure_dir, show=True):
     }
 
 
-def main(argv=None):
-    """Evaluate Model E by default, or all nine primary saved experiments."""
-    root = Path(__file__).resolve().parent.parent
-    parser = argparse.ArgumentParser(description=__doc__)
-    selection = parser.add_mutually_exclusive_group()
-    selection.add_argument("--checkpoint", type=Path, help="Path to a saved .pt file")
-    selection.add_argument(
-        "--all", action="store_true", help="Evaluate all primary experiments"
-    )
-    parser.add_argument(
-        "--no-show", action="store_true", help="Save plots without opening windows"
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=root / "results",
-        help="Destination for figures and tables",
-    )
-    args = parser.parse_args(argv)
+def main():
+    """Evaluate the selected saved model without changing its weights or resetting state."""
+    root = PROJECT_ROOT
     checkpoint_dir = root / "results" / "checkpoints"
-    if args.all:
-        # model_a.pt is an earlier extra run; keep it but do not silently replace A/w16.
-        paths = sorted(
-            path for path in checkpoint_dir.glob("*.pt") if path.name != "model_a.pt"
-        )
-    else:
-        paths = [args.checkpoint or checkpoint_dir / "model_e_w128_s2000.pt"]
-    if not paths:
-        raise FileNotFoundError(f"No checkpoints found in {checkpoint_dir}")
+    paths = select_checkpoints(checkpoint_dir)
+    print("Evaluating:", ", ".join(path.name for path in paths))
     rows = [
         evaluate_checkpoint(
             path,
             root / "data/processed/silverbox_excerpt.npz",
-            args.output_dir / "figures",
-            show=not args.no_show,
+            root / "results" / "figures",
+            show=show_plots,
         )
         for path in paths
     ]
-    table_dir = args.output_dir / "tables"
+    table_dir = root / "results" / "tables"
     table_dir.mkdir(parents=True, exist_ok=True)
     # A single-model evaluation must not overwrite the complete comparison table.
     table_name = (
-        "experiment_results.csv" if args.all else f"{paths[0].stem}_results.csv"
+        "experiment_results.csv" if evaluate_all else f"{paths[0].stem}_results.csv"
     )
     with (table_dir / table_name).open("w", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=list(rows[0]))

@@ -21,7 +21,8 @@ was not performed.
 - Training gradients through RK4 were finite and nonzero.
 - A two-step Model E training smoke run completed with finite losses, saving
   only a temporary checkpoint outside this project. Full retraining was not run.
-- Attempting to train into an existing checkpoint failed before optimization.
+- Repeating the same training configuration saves a new numbered checkpoint
+  without overwriting previous weights (updated VS Code workflow).
 - Model E's regenerated full-run/test plots and the comparison chart were
   visually inspected; axis labels, legends and curves were readable.
 
@@ -29,3 +30,16 @@ The CSV scores describe the assignment's prescribed evaluation. Whole-excerpt
 centering and test-based selection are explicit assignment requirements.
 No independent holdout performance or additional optimizer sweep is claimed.
 GitHub publication and the LaTeX report have not been performed.
+
+## VS Code workflow update
+
+- Training and evaluation settings are visible and commented at the top of each script.
+- Command-line argument parsing was removed from these two scripts.
+- The training optimization loop and all existing evaluation calculation functions
+  are structurally identical to the pre-update functions.
+- Two repeated two-step training smoke runs saved separate files with identical weights.
+- Latest-checkpoint selection, explicit selection, all-model selection and the
+  explanatory missing-file error were checked.
+- A Model E evaluation completed after the update and retained test RMSE 0.024515912 V.
+- Temporary training outputs stayed outside the project. The user's 100-step repeat
+  configuration was preserved; no full training run was performed in this update.

@@ -137,54 +137,61 @@ python -m pip install -r requirements.txt
 All commands below run from the repository root. No absolute user-specific paths
 are required. Model loading uses `torch.load(..., weights_only=True)` on CPU.
 
-## Run the saved experiments
+## Run in VS Code
 
-```bash
-# Prepare the prescribed excerpt and inspect its signals.
-python scr/data_handler.py
-python scr/visualize.py --no-show
+Open the project folder in VS Code and select the Python interpreter containing
+the packages from `requirements.txt`. Open a script and press **Run Python File**.
+All project paths are resolved from the script location, so Run also works when
+the terminal is currently in another directory.
 
-# Model E: save full-run and test-segment plots, plus a single-model CSV.
-python scr/evaluate.py --no-show
+1. Run `scr/data_handler.py` to prepare the prescribed excerpt if needed.
+2. Run `scr/visualize.py` to view the centered signals.
+3. Run `scr/train.py` when you want a new training experiment.
+4. Run `scr/evaluate.py` to score a saved model and save its figures and CSV.
 
-# Recompute the comparison table and figures for all nine primary experiments.
-python scr/evaluate.py --all --no-show
-python scr/compare_experiments.py
+### Training settings
 
-# Evaluate the earlier extra Model A run separately.
-python scr/evaluate.py --checkpoint results/checkpoints/model_a.pt --no-show
+Edit the commented **Training configuration** block at the top of `train.py`.
+It contains `model_name`, `hidden_size`, `num_steps`, `window_size` and
+`learning_rate`. The current configuration preserves the user's short repeat
+experiment: 128 hidden neurons, 100 steps, window 128 and LR 0.0005. This repeat
+is separate from the selected final Model E, which used 2000 steps.
 
-# Check the raw-to-processed data and analytical RK4 cases.
-python scr/validate.py
+If the checkpoint filename already exists, the script adds `_run02`, `_run03`,
+etc. automatically. Existing weights are never overwritten. The output path is
+printed before training and again when saving. A fixed seed improves
+reproducibility, but retraining on another runtime or platform is not guaranteed
+to reproduce every saved weight exactly.
+
+### Evaluation settings
+
+Edit the commented **Evaluation configuration** block at the top of `evaluate.py`:
+
+```python
+checkpoint_name = None  # Use the most recently saved checkpoint.
+evaluate_all = False   # Evaluate one selected model.
+show_plots = True      # Display plots as well as saving them.
 ```
 
-Omit `--no-show` to display evaluation figures interactively. For evaluation on a
-machine without a display, set `MPLBACKEND=Agg`. `--output-dir` can put evaluation
-figures and CSV files in another directory. Single-model evaluation never
-replaces the complete nine-experiment CSV.
+`None` chooses the checkpoint with the newest file modification time and prints
+its name before evaluation. To evaluate the final Model E specifically, use:
 
-## Train another copy of an experiment
-
-The default configuration is Model E. Training deliberately refuses to overwrite
-an existing checkpoint. Choose a new checkpoint path to repeat training:
-
-```bash
-python scr/train.py --checkpoint results/checkpoints/repeat_model_e.pt
+```python
+checkpoint_name = "model_e_w128_s2000.pt"
 ```
 
-All existing settings can be selected without editing the script, for example:
+To rebuild the comparison CSV for all saved experiments, set `evaluate_all = True`.
+This includes new repeat runs and excludes only the earlier extra `model_a.pt`.
+Set it back to `False` for single-model evaluation. A single-model run writes its
+own CSV and never replaces the complete comparison table.
 
-```bash
-python scr/train.py --model-name model_c --hidden-size 32 --steps 1000 \
-  --window 128 --learning-rate 0.001 \
-  --checkpoint results/checkpoints/repeat_model_c.pt
-```
+Run `scr/compare_experiments.py` to plot the comparison table, and
+`scr/validate.py` to check preprocessing, RK4 and training gradients.
+Set `show_plots = False` for evaluation without opening windows.
 
-Check the resulting checkpoint with `evaluate.py --checkpoint ...`.
-A fixed seed improves reproducibility, but retraining on another runtime or
-platform is not guaranteed to reproduce every saved weight exactly.
-The reported table evaluates the already saved experiments; it does not claim
-that all nine were retrained during cleanup.
+The old command-line configuration flags in `train.py` and `evaluate.py` have
+been removed in favor of the visible settings above. Both can also be run from
+the repository root with `python scr/train.py` and `python scr/evaluate.py`.
 
 ## Cleanup verification
 
