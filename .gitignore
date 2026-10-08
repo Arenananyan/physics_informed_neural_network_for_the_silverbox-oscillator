@@ -1,0 +1,22 @@
+# Local environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# macOS and editor files
+.DS_Store
+.vscode/
+.idea/
+
+# Local secrets
+.env
+.env.*
+!.env.example
+
+# Temporary work; keep results/checkpoints, figures and tables versioned.
+work/
+tmp/

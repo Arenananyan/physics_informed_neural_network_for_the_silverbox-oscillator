@@ -1,0 +1,2 @@
+experiment_id,model,architecture,activation,window_size,training_steps,learning_rate,train_rmse_v,test_rmse_v,zero_baseline_rmse_v,checkpoint,full_run_figure,test_figure,metric_source
+model_a,model_a,3-4-4-1,Tanh,16,200,0.001,9.228714943,18.489641190,0.060491856,results/checkpoints/model_a.pt,results/figures/model_a_free_run.png,results/figures/model_a_test.png,recomputed_from_checkpoint
