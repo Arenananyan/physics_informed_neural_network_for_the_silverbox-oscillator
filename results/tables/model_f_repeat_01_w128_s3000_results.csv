@@ -1,0 +1,2 @@
+experiment_id,model,architecture,activation,window_size,training_steps,learning_rate,train_rmse_v,test_rmse_v,zero_baseline_rmse_v,checkpoint,full_run_figure,test_figure,metric_source
+model_f_repeat_01_w128_s3000,model_f_repeat_01,3-256-256-1,Tanh,128,3000,0.0005,0.012310646,0.013225870,0.060491856,results/checkpoints/model_f_repeat_01_w128_s3000.pt,results/figures/model_f_repeat_01_w128_s3000_free_run.png,results/figures/model_f_repeat_01_w128_s3000_test.png,recomputed_from_checkpoint

@@ -29,7 +29,8 @@ was not performed.
 The CSV scores describe the assignment's prescribed evaluation. Whole-excerpt
 centering and test-based selection are explicit assignment requirements.
 No independent holdout performance or additional optimizer sweep is claimed.
-GitHub publication and the LaTeX report have not been performed.
+At the time of the October 8 cleanup, GitHub publication and the LaTeX report
+had not been performed.
 
 ## VS Code workflow update
 
@@ -43,3 +44,17 @@ GitHub publication and the LaTeX report have not been performed.
 - A Model E evaluation completed after the update and retained test RMSE 0.024515912 V.
 - Temporary training outputs stayed outside the project. The user's 100-step repeat
   configuration was preserved; no full training run was performed in this update.
+
+## Model F repeats - 2026-10-10
+
+- Model F repeat 01 (3-256-256-1, window 128, 3000 steps, learning rate 0.0005,
+  seed 42) was evaluated again from its saved checkpoint: train RMSE
+  0.012310646 V; test RMSE 0.013225870 V.
+- An independent Model F repeat 02 used the same settings with seed 43. Its
+  3000-step training finished and saved a distinct checkpoint. A continuous
+  4096-sample free run gave train RMSE 0.039822351 V and test RMSE 0.046066895 V.
+- The validation script passed data/excerpt, RK4, and gradient checks. The
+  comparison table now records the nine original experiments and four saved
+  repeat runs. Each new table row points to an existing checkpoint and plots.
+- The earlier E repeat 01 run 02 used the same seed as run 01 and reproduced
+  identical metrics. It should not be interpreted as an independent repeat.

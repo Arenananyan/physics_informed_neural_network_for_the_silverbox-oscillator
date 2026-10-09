@@ -17,18 +17,20 @@ The network learns acceleration directly; it does not fit explicit values of
 `a`, `b`, `c`, or `g`, and the loss contains no separate physics-residual penalty.
 The state equation and differentiable integrator provide the dynamical structure.
 
-The selected Model E has architecture **3-128-128-1**, with Tanh activations in
-both hidden layers and a linear output. Inputs `[y, v, u]` are divided by
-`[0.1, 40.0, 0.05]`; the network output is multiplied by `20000.0`.
-These fixed scales are identical across the saved experiments.
+The lowest recorded test RMSE belongs to Model F repeat 01, with architecture
+**3-256-256-1**. Both hidden layers use Tanh activations and the output is
+linear. Inputs `[y, v, u]` are divided by `[0.1, 40.0, 0.05]`; the network
+output is multiplied by `20000.0`. These fixed scales are identical across
+the saved experiments. Model E (3-128-128-1) is retained for comparison.
 
 Each RK4 step uses the measured input at both endpoints and their average at
 the midpoint. Training uses randomly selected windows from the training record.
 Each window starts from its measured output and a forward finite-difference
 output derivative. The objective is mean squared output error through the
 window. Optimization uses Adam and gradient clipping with maximum norm 1.0.
-Model E uses a window of 128 samples, 2000 optimizer steps, learning rate 0.0005,
-and `torch.manual_seed(42)`. A step is one sampled window, not a full epoch.
+Model F uses a window of 128 samples, 3000 optimizer steps, and learning rate
+0.0005. Repeat 01 used seed 42; the new independent repeat 02 used seed 43.
+A step is one sampled window, not a full epoch.
 The original CPU float32 calculation is preserved.
 
 ## Data and evaluation protocol
@@ -55,8 +57,9 @@ The test plot uses the last 1024 predictions from this same free run.
 
 ## Verified results
 
-The table below is recomputed from the saved checkpoints. More precise metrics,
-checkpoint paths and figure paths are in
+The first nine rows are the original A--E experiments; the final four are
+additional repeat runs. Metrics were recomputed from the saved checkpoints.
+More precise metrics, checkpoint paths and figure paths are in
 [`results/tables/experiment_results.csv`](results/tables/experiment_results.csv).
 
 | Model | Architecture | Window | Steps | LR | Train RMSE (V) | Test RMSE (V) |
@@ -70,16 +73,24 @@ checkpoint paths and figure paths are in
 | C | 3-32-32-1 | 128 | 1000 | 0.001 | 0.024891 | 0.030593 |
 | D | 3-64-64-1 | 128 | 1000 | 0.0005 | 0.016129 | 0.026024 |
 | **E** | **3-128-128-1** | **128** | **2000** | **0.0005** | **0.012396** | **0.024516** |
+| E repeat 01 | 3-128-128-1 | 128 | 100 | 0.0005 | 0.036200 | 0.042157 |
+| E repeat 01 run 02 | 3-128-128-1 | 128 | 100 | 0.0005 | 0.036200 | 0.042157 |
+| **F repeat 01** | **3-256-256-1** | **128** | **3000** | **0.0005** | **0.012311** | **0.013226** |
+| F repeat 02 | 3-256-256-1 | 128 | 3000 | 0.0005 | 0.039822 | 0.046067 |
 
-The zero baseline is **0.060492 V**. Model E's test RMSE is about 24.5 mV,
-59.5% lower than the zero baseline. It is the best of the nine primary saved
-experiments under the assignment's metric.
+The zero baseline is **0.060492 V**. Model F repeat 01 has the lowest recorded
+test RMSE: **0.013226 V** (13.2 mV), 78.1% below the zero baseline and 46.1%
+below Model E's 0.024516 V. The independent F repeat 02 has a much larger test
+RMSE of 0.046067 V, despite the same architecture and training budget. Thus a
+single favorable seed should not be taken as typical performance. The second
+E repeat reuses the same seed and reproduces its first result; it is not an
+independent robustness check.
 
-![Model E continuous free run](results/figures/model_e_w128_s2000_free_run.png)
+![Model F repeat 01 continuous free run](results/figures/model_f_repeat_01_w128_s3000_free_run.png)
 
-![Model E test segment](results/figures/model_e_w128_s2000_test.png)
+![Model F repeat 01 test segment](results/figures/model_f_repeat_01_w128_s3000_test.png)
 
-![Comparison of primary experiments](results/figures/experiment_comparison.png)
+![Comparison of all saved experiments](results/figures/experiment_comparison.png)
 
 ### Interpretation and historical files
 
@@ -89,13 +100,15 @@ independent, untouched final test estimate. Full-excerpt centering also follows
 the assignment rather than a general train-only preprocessing protocol.
 
 Some comparisons change multiple settings at once: C to D changes width and
-learning rate; D to E changes width and training steps. The measured improvement
-cannot be attributed to width alone. The current training script uses Adam. No additional optimizer sweep is claimed.
+learning rate; D to E changes width and training steps; E to F changes width
+and training steps. The measured improvement cannot be attributed to width
+alone. The current training script uses Adam. No additional optimizer sweep is
+claimed.
 
 `results/checkpoints/model_a.pt` is an earlier extra run, distinct from
 `model_a_w16.pt`. Its recomputed train/test RMSE is approximately
 9.228715/18.489641 V. It and its original figure are preserved, but it is excluded
-from the nine primary experiments. Its separate results can be regenerated with
+from the comparison table. Its separate results can be regenerated with
 the single-checkpoint evaluation command below. Original figures are retained;
 new evaluation figures are named after their actual checkpoint stems.
 
@@ -152,10 +165,11 @@ the terminal is currently in another directory.
 ### Training settings
 
 Edit the commented **Training configuration** block at the top of `train.py`.
-It contains `model_name`, `hidden_size`, `num_steps`, `window_size` and
-`learning_rate`. The current configuration preserves the user's short repeat
-experiment: 128 hidden neurons, 100 steps, window 128 and LR 0.0005. This repeat
-is separate from the selected final Model E, which used 2000 steps.
+It contains `model_name`, `hidden_size`, `num_steps`, `window_size`,
+`learning_rate`, and `random_seed`. The current configuration runs an independent
+Model F repeat with 256 hidden neurons per layer, 3000 steps, window 128,
+learning rate 0.0005, and seed 43. Change the model name and seed when starting
+a distinct repeat experiment.
 
 If the checkpoint filename already exists, the script adds `_run02`, `_run03`,
 etc. automatically. Existing weights are never overwritten. The output path is
@@ -174,10 +188,10 @@ show_plots = True      # Display plots as well as saving them.
 ```
 
 `None` chooses the checkpoint with the newest file modification time and prints
-its name before evaluation. To evaluate the final Model E specifically, use:
+its name before evaluation. To evaluate the lowest-scoring Model F run, use:
 
 ```python
-checkpoint_name = "model_e_w128_s2000.pt"
+checkpoint_name = "model_f_repeat_01_w128_s3000.pt"
 ```
 
 To rebuild the comparison CSV for all saved experiments, set `evaluate_all = True`.
@@ -202,5 +216,5 @@ checks actually run during cleanup.
 
 The code, processed excerpt, checkpoints, plots and result tables are retained.
 `.gitignore` excludes virtual environments, Python caches, macOS metadata,
-editor settings, temporary work and local `.env` files. This folder has not yet been published to GitHub. Add its repository link to the
-final homework PDF after publication. The LaTeX write-up is a separate next step.
+editor settings, temporary work and local `.env` files. The project is published
+at [GitHub](https://github.com/Arenananyan/physics_informed_neural_network_for_the_silverbox-oscillator).

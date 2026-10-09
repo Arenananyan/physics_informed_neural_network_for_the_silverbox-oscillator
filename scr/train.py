@@ -8,12 +8,13 @@ from model import AccelerationNetwork
 from integrator import rollout
 
 # Training configuration: edit these values, save the file, then press Run in VS Code.
-# The current 100-step setup is a short repeat experiment, not the final 2000-step Model E.
-model_name = "model_e_repeat_01"  # Experiment label used in the checkpoint filename.
-hidden_size = 128  # Number of neurons in each of the two hidden layers.
-num_steps = 100  # Number of optimizer updates (one random window per update).
+# This is an independent repeat of Model F; use a different seed from repeat 01.
+model_name = "model_f_repeat_02"  # Experiment label used in the checkpoint filename.
+hidden_size = 256  # Number of neurons in each of the two hidden layers.
+num_steps = 3000  # Number of optimizer updates (one random window per update).
 window_size = 128  # Number of samples in each training rollout.
 learning_rate = 0.0005  # Adam optimizer step size.
+random_seed = 43  # Controls weight initialization and random training windows.
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -66,7 +67,7 @@ def main():
     checkpoint_path = choose_checkpoint_path(root / "results" / "checkpoints")
     print("New checkpoint will be saved to:", checkpoint_path)
 
-    torch.manual_seed(42)
+    torch.manual_seed(random_seed)
 
     model = AccelerationNetwork(hidden_size=hidden_size)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -116,6 +117,7 @@ def main():
             "learning_rate": learning_rate,
             "window_size": window_size,
             "num_steps": num_steps,
+            "random_seed": random_seed,
             "loss_history": loss_history,
         },
         checkpoint_path,

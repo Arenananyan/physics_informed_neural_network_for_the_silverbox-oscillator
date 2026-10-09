@@ -1,0 +1,2 @@
+experiment_id,model,architecture,activation,window_size,training_steps,learning_rate,train_rmse_v,test_rmse_v,zero_baseline_rmse_v,checkpoint,full_run_figure,test_figure,metric_source
+model_e_repeat_01_w128_s100_run02,model_e_repeat_01,3-128-128-1,Tanh,128,100,0.0005,0.036200080,0.042156909,0.060491856,results/checkpoints/model_e_repeat_01_w128_s100_run02.pt,results/figures/model_e_repeat_01_w128_s100_run02_free_run.png,results/figures/model_e_repeat_01_w128_s100_run02_test.png,recomputed_from_checkpoint

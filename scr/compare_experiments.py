@@ -38,12 +38,18 @@ def main(argv=None):
     baselines = [float(row["zero_baseline_rmse_v"]) for row in rows]
     if not np.allclose(baselines, baselines[0], rtol=0, atol=1e-9):
         raise ValueError("Experiments must share the same test baseline.")
-    labels = [
-        f"{row['model'].removeprefix('model_').upper()}\nW{row['window_size']} / S{row['training_steps']}"
-        for row in rows
-    ]
+    labels = []
+    for row in rows:
+        name = row["model"].removeprefix("model_").upper()
+        if "_REPEAT_" in name:
+            letter, repeat = name.split("_REPEAT_", 1)
+            name = f"{letter} r{repeat}"
+        if "_run" in row["experiment_id"]:
+            name += " run" + row["experiment_id"].rsplit("_run", 1)[1]
+        labels.append(f"{name}\nW{row['window_size']} / S{row['training_steps']}")
     x = np.arange(len(rows))
-    fig, ax = plt.subplots(figsize=(12, 5))
+    # Keep labels legible when repeat experiments extend the original nine rows.
+    fig, ax = plt.subplots(figsize=(max(12, len(rows) * 1.1), 6))
     ax.bar(x - 0.19, train, width=0.38, label="Train RMSE", color="#6595bd")
     ax.bar(x + 0.19, test, width=0.38, label="Test RMSE", color="#e0a15a")
     ax.axhline(
@@ -57,6 +63,7 @@ def main(argv=None):
     )
     ax.grid(axis="y", alpha=0.25)
     ax.set_axisbelow(True)
+    plt.setp(ax.get_xticklabels(), rotation=35, ha="right", fontsize=8)
     ax.legend()
     fig.tight_layout()
     args.output.parent.mkdir(parents=True, exist_ok=True)
