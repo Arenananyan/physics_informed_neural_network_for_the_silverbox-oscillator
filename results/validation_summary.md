@@ -58,3 +58,5 @@ had not been performed.
   repeat runs. Each new table row points to an existing checkpoint and plots.
 - The earlier E repeat 01 run 02 used the same seed as run 01 and reproduced
   identical metrics. It should not be interpreted as an independent repeat.
+- The presentation table and comparison plot show only the lowest-test-RMSE
+  run for each model A--F; the detailed CSV retains all 13 experiments.

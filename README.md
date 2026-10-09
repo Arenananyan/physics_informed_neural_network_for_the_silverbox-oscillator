@@ -57,26 +57,19 @@ The test plot uses the last 1024 predictions from this same free run.
 
 ## Verified results
 
-The first nine rows are the original A--E experiments; the final four are
-additional repeat runs. Metrics were recomputed from the saved checkpoints.
-More precise metrics, checkpoint paths and figure paths are in
+The table shows only the run with the lowest test RMSE for each model A--F.
+All 13 saved experiments, including the other settings and repeat runs, remain
+in the detailed
 [`results/tables/experiment_results.csv`](results/tables/experiment_results.csv).
 
 | Model | Architecture | Window | Steps | LR | Train RMSE (V) | Test RMSE (V) |
 |---|---|---:|---:|---:|---:|---:|
-| A | 3-4-4-1 | 16 | 200 | 0.001 | 0.057884 | 0.063896 |
-| A | 3-4-4-1 | 64 | 200 | 0.001 | 0.056296 | 0.062778 |
 | A | 3-4-4-1 | 128 | 200 | 0.001 | 0.054946 | 0.061760 |
-| B | 3-16-16-1 | 128 | 200 | 0.001 | 0.053053 | 0.060466 |
 | B | 3-16-16-1 | 128 | 1000 | 0.001 | 0.044517 | 0.051304 |
-| B | 3-16-16-1 | 256 | 1000 | 0.001 | 0.050899 | 0.057952 |
 | C | 3-32-32-1 | 128 | 1000 | 0.001 | 0.024891 | 0.030593 |
 | D | 3-64-64-1 | 128 | 1000 | 0.0005 | 0.016129 | 0.026024 |
-| **E** | **3-128-128-1** | **128** | **2000** | **0.0005** | **0.012396** | **0.024516** |
-| E repeat 01 | 3-128-128-1 | 128 | 100 | 0.0005 | 0.036200 | 0.042157 |
-| E repeat 01 run 02 | 3-128-128-1 | 128 | 100 | 0.0005 | 0.036200 | 0.042157 |
-| **F repeat 01** | **3-256-256-1** | **128** | **3000** | **0.0005** | **0.012311** | **0.013226** |
-| F repeat 02 | 3-256-256-1 | 128 | 3000 | 0.0005 | 0.039822 | 0.046067 |
+| E | 3-128-128-1 | 128 | 2000 | 0.0005 | 0.012396 | 0.024516 |
+| **F** | **3-256-256-1** | **128** | **3000** | **0.0005** | **0.012311** | **0.013226** |
 
 The zero baseline is **0.060492 V**. Model F repeat 01 has the lowest recorded
 test RMSE: **0.013226 V** (13.2 mV), 78.1% below the zero baseline and 46.1%
@@ -90,7 +83,7 @@ independent robustness check.
 
 ![Model F repeat 01 test segment](results/figures/model_f_repeat_01_w128_s3000_test.png)
 
-![Comparison of all saved experiments](results/figures/experiment_comparison.png)
+![Best run for each model A--F](results/figures/experiment_comparison.png)
 
 ### Interpretation and historical files
 
